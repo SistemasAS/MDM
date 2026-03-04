@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDM Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #080c10;
+            --surface:   #0d1117;
+            --panel:     #111820;
+            --border:    #1e2d3d;
+            --accent:    #00d4ff;
+            --accent2:   #00ff88;
+            --danger:    #ff4455;
+            --warn:      #ffaa00;
+            --text:      #c9d1d9;
+            --muted:     #4a5568;
+            --bright:    #e6edf3;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Syne', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ── Scanline overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,212,255,0.015) 2px,
+                rgba(0,212,255,0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ── Header ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 56px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: var(--font-sans);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--bright);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--accent2);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .server-status {
+            color: var(--accent2);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Auth overlay ── */
+        #auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 48px;
+            width: 400px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-box h2 {
+            font-family: var(--font-sans);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--bright);
+            margin-bottom: 8px;
+        }
+
+        .auth-box p {
+            color: var(--muted);
+            margin-bottom: 32px;
+            font-size: 12px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .field input {
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: var(--bright);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field input:focus { border-color: var(--accent); }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 6px;
+            border: none;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+            width: 100%;
+            justify-content: center;
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        .btn-primary:hover { background: #33ddff; transform: translateY(-1px); }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-danger {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover { background: rgba(255,68,85,0.1); }
+
+        .btn-success {
+            background: transparent;
+            border: 1px solid var(--accent2);
+            color: var(--accent2);
+        }
+
+        .btn-success:hover { background: rgba(0,255,136,0.1); }
+
+        /* ── Layout ── */
+        .app {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .app.visible { display: flex; }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+
+        .tab {
+            padding: 14px 20px;
+            font-size: 12px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* ── Main content ── */
+        .main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── Stats grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--accent); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .stat-card.cyan::before  { background: var(--accent); }
+        .stat-card.green::before { background: var(--accent2); }
+        .stat-card.red::before   { background: var(--danger); }
+        .stat-card.yellow::before{ background: var(--warn); }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-family: var(--font-sans);
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--bright);
+            line-height: 1;
+        }
+
+        .stat-card.cyan  .stat-value { color: var(--accent); }
+        .stat-card.green .stat-value { color: var(--accent2); }
+        .stat-card.red   .stat-value { color: var(--danger); }
+        .stat-card.yellow .stat-value{ color: var(--warn); }
+
+        /* ── Table ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--bright);
+        }
+
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(30,45,61,0.5);
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover { background: var(--panel); }
+        tbody tr:last-child { border-bottom: none; }
+
+        td {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .badge-active  { background: rgba(0,255,136,0.1); color: var(--accent2); border: 1px solid rgba(0,255,136,0.2); }
+        .badge-inactive{ background: rgba(74,85,104,0.2); color: var(--muted);   border: 1px solid rgba(74,85,104,0.3); }
+        .badge-blocked { background: rgba(255,68,85,0.1); color: var(--danger);  border: 1px solid rgba(255,68,85,0.2); }
+
+        .badge-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* ── Detail panel ── */
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,12,16,0.8);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .detail-overlay.open { display: flex; }
+
+        .detail-panel {
+            width: 480px;
+            height: 100vh;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.25s ease;
+            overflow-y: auto;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to   { transform: translateX(0); }
+        }
+
+        .detail-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .detail-serial {
+            font-family: var(--font-sans);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--bright);
+        }
+
+        .detail-body { padding: 24px; flex: 1; }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .detail-key   { color: var(--muted); font-size: 11px; }
+        .detail-val   { color: var(--bright); font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(30,45,61,0.5);
+        }
+
+        .toggle-label { color: var(--text); font-size: 12px; }
+
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 2px; top: 2px;
+            background: var(--muted);
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle input:checked + .toggle-slider { background: rgba(0,212,255,0.2); border-color: var(--accent); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--accent); }
+
+        .number-input {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--bright);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            width: 70px;
+            text-align: center;
+            outline: none;
+        }
+
+        .number-input:focus { border-color: var(--accent); }
+
+        .apps-input {
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--bright);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            margin-top: 8px;
+        }
+
+        .apps-input:focus { border-color: var(--accent); }
+
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        /* ── Policy form ── */
+        .policy-form {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .policy-form.open { display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-actions { display: flex; gap: 8px; }
+
+        /* ── Map ── */
+        #map {
+            width: 100%;
+            height: 500px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ── History ── */
+        .history-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .history-controls .field { margin: 0; flex: 1; min-width: 160px; }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 12px;
+            color: var(--bright);
+            z-index: 9000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 320px;
+        }
+
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { border-color: var(--accent2); color: var(--accent2); }
+        #toast.error   { border-color: var(--danger);  color: var(--danger);  }
+
+        /* ── Empty state ── */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+        .empty p    { font-size: 13px; }
+
+        /* ── Loading ── */
+        .loading-row td {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── History table ── */
+        .coord { font-family: var(--font-mono); color: var(--accent); font-size: 11px; }
+
+        /* ── Config token display ── */
+        .token-box {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent);
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .scrollbar::-webkit-scrollbar { width: 6px; }
+        .scrollbar::-webkit-scrollbar-track { background: var(--bg); }
+        .scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h2>MDM <span style="color:var(--accent)">Console</span></h2>
+        <p>Ingresa tu token de administrador para continuar</p>
+        <div class="field">
+            <label>Admin Token</label>
+            <input type="password" id="token-input" placeholder="Bearer token..." />
+        </div>
+        <div class="field">
+            <label>URL del Servidor</label>
+            <input type="text" id="server-input" value="http://localhost:5000" />
+        </div>
+        <button class="btn btn-primary" onclick="login()">Conectar →</button>
+        <div id="auth-error" style="color:var(--danger);font-size:11px;margin-top:12px;display:none;"></div>
+    </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+    <header>
+        <div class="logo">
+            <div class="logo-icon">⬡</div>
+            MDM <span>Console</span>
+        </div>
+        <div class="header-right">
+            <div class="status-dot"></div>
+            <span class="server-status" id="server-label">localhost:5000</span>
+            <button class="btn btn-ghost" onclick="logout()" style="padding:6px 12px;font-size:11px;">Salir</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
+        <div class="tab" onclick="switchTab('devices')">Dispositivos</div>
+        <div class="tab" onclick="switchTab('policies')">Políticas</div>
+        <div class="tab" onclick="switchTab('history')">Historial GPS</div>
+    </div>
+
+    <div class="main">
+
+        <!-- DASHBOARD -->
+        <div class="tab-content active" id="tab-dashboard">
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card cyan">
+                    <div class="stat-label">Total Dispositivos</div>
+                    <div class="stat-value" id="s-total">—</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Online (10 min)</div>
+                    <div class="stat-value" id="s-online">—</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-label">Activos</div>
+                    <div class="stat-value" id="s-active">—</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-label">Bloqueados</div>
+                    <div class="stat-value" id="s-blocked">—</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">Dispositivos recientes</div>
+                <button class="btn btn-ghost" onclick="loadDashboard()">↺ Actualizar</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Serial</th><th>Modelo</th><th>Estado</th><th>Última conexión</th>
+                    </tr></thead>
+                    <tbody id="dash-devices"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DEVICES -->
+        <div class="tab-content" id="tab-devices">
+            <div class="section-header">
+                <div class="section-title">Todos los dispositivos</div>
+                <button class="btn btn-ghost" onclick="loadDevices()">↺ Actualizar</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Serial</th><th>Fabricante</th><th>Modelo</th><th>Android</th><th>Estado</th><th>Última conexión</th><th></th>
+                    </tr></thead>
+                    <tbody id="devices-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- POLICIES -->
+        <div class="tab-content" id="tab-policies">
+            <div class="section-header">
+                <div class="section-title">Plantillas de Políticas</div>
+                <button class="btn btn-success" onclick="togglePolicyForm()">+ Nueva Política</button>
+            </div>
+
+            <div class="policy-form" id="policy-form">
+                <div style="font-family:var(--font-sans);font-size:14px;font-weight:700;color:var(--bright);margin-bottom:16px;">Nueva Política</div>
+                <div class="form-grid">
+                    <div class="field" style="margin:0">
+                        <label>Nombre</label>
+                        <input type="text" id="p-name" placeholder="ej. Kiosco Tienda" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:13px;outline:none;width:100%">
+                    </div>
+                    <div class="field" style="margin:0">
+                        <label>Descripción</label>
+                        <input type="text" id="p-desc" placeholder="Descripción opcional" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:13px;outline:none;width:100%">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <label class="toggle-row" style="cursor:pointer">
+                        <span class="toggle-label">Modo Kiosco</span>
+                        <label class="toggle"><input type="checkbox" id="p-kiosk"><span class="toggle-slider"></span></label>
+                    </label>
+                    <label class="toggle-row" style="cursor:pointer">
+                        <span class="toggle-label">Bloquear Wi-Fi</span>
+                        <label class="toggle"><input type="checkbox" id="p-wifi"><span class="toggle-slider"></span></label>
+                    </label>
+                    <label class="toggle-row" style="cursor:pointer">
+                        <span class="toggle-label">Bloquear Datos</span>
+                        <label class="toggle"><input type="checkbox" id="p-data"><span class="toggle-slider"></span></label>
+                    </label>
+                    <label class="toggle-row" style="cursor:pointer">
+                        <span class="toggle-label">Bloquear Reset Fábrica</span>
+                        <label class="toggle"><input type="checkbox" id="p-reset" checked><span class="toggle-slider"></span></label>
+                    </label>
+                    <label class="toggle-row" style="cursor:pointer">
+                        <span class="toggle-label">Bloquear Modo Seguro</span>
+                        <label class="toggle"><input type="checkbox" id="p-safe" checked><span class="toggle-slider"></span></label>
+                    </label>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Frecuencia GPS (min)</span>
+                        <input type="number" class="number-input" id="p-freq" value="5" min="1" max="60">
+                    </div>
+                </div>
+                <div class="field" style="margin-bottom:16px">
+                    <label>Apps permitidas (una por línea, package name)</label>
+                    <textarea class="apps-input" id="p-apps" placeholder="com.example.app&#10;com.another.app"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="createPolicy()" style="width:auto">Guardar Política</button>
+                    <button class="btn btn-ghost" onclick="togglePolicyForm()">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Nombre</th><th>Descripción</th><th>Kiosco</th><th>GPS (min)</th><th>Creada</th><th></th>
+                    </tr></thead>
+                    <tbody id="policies-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="tab-content" id="tab-history">
+            <div class="section-header">
+                <div class="section-title">Historial de Ubicaciones</div>
+            </div>
+            <div class="history-controls">
+                <div class="field">
+                    <label>Dispositivo</label>
+                    <select id="h-device" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:13px;outline:none;width:100%">
+                        <option value="">Selecciona un dispositivo...</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Desde</label>
+                    <input type="datetime-local" id="h-start" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:12px;outline:none;width:100%">
+                </div>
+                <div class="field">
+                    <label>Hasta</label>
+                    <input type="datetime-local" id="h-end" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:12px;outline:none;width:100%">
+                </div>
+                <button class="btn btn-primary" onclick="loadHistory()" style="width:auto;white-space:nowrap">Buscar</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Timestamp</th><th>Latitud</th><th>Longitud</th><th>Precisión (m)</th><th>Velocidad (m/s)</th>
+                    </tr></thead>
+                    <tbody id="history-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- DEVICE DETAIL PANEL -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+    <div class="detail-panel scrollbar" id="detail-panel">
+        <div class="detail-header">
+            <div>
+                <div class="detail-serial" id="d-serial">—</div>
+                <div id="d-badge" style="margin-top:6px"></div>
+            </div>
+            <button class="btn btn-ghost" onclick="closeDetailPanel()" style="padding:6px 10px">✕</button>
+        </div>
+        <div class="detail-body">
+            <div class="detail-section">
+                <div class="detail-section-title">Información del dispositivo</div>
+                <div class="detail-row"><span class="detail-key">Fabricante</span><span class="detail-val" id="d-manufacturer">—</span></div>
+                <div class="detail-row"><span class="detail-key">Modelo</span><span class="detail-val" id="d-model">—</span></div>
+                <div class="detail-row"><span class="detail-key">Android</span><span class="detail-val" id="d-android">—</span></div>
+                <div class="detail-row"><span class="detail-key">Última conexión</span><span class="detail-val" id="d-lastseen">—</span></div>
+                <div class="detail-row"><span class="detail-key">Registrado</span><span class="detail-val" id="d-registered">—</span></div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-section-title">Última ubicación</div>
+                <div class="detail-row"><span class="detail-key">Latitud</span><span class="detail-val coord" id="d-lat">—</span></div>
+                <div class="detail-row"><span class="detail-key">Longitud</span><span class="detail-val coord" id="d-lng">—</span></div>
+                <div class="detail-row"><span class="detail-key">Timestamp</span><span class="detail-val" id="d-loc-time">—</span></div>
+                <div id="d-maps-link" style="margin-top:10px;display:none">
+                    <a id="d-maps-a" href="#" target="_blank" class="btn btn-ghost" style="font-size:11px;text-decoration:none;display:inline-flex">
+                        🗺 Ver en Google Maps
+                    </a>
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-section-title">Política activa</div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Modo Kiosco</span>
+                    <label class="toggle"><input type="checkbox" id="c-kiosk"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Bloquear Wi-Fi</span>
+                    <label class="toggle"><input type="checkbox" id="c-wifi"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Bloquear Datos Móviles</span>
+                    <label class="toggle"><input type="checkbox" id="c-data"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Bloquear Reset Fábrica</span>
+                    <label class="toggle"><input type="checkbox" id="c-reset"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Bloquear Modo Seguro</span>
+                    <label class="toggle"><input type="checkbox" id="c-safe"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Frecuencia GPS (min)</span>
+                    <input type="number" class="number-input" id="c-freq" value="5" min="1" max="60">
+                </div>
+                <div style="margin-top:12px">
+                    <div class="detail-key" style="margin-bottom:6px">Apps permitidas (package names)</div>
+                    <textarea class="apps-input" id="c-apps" placeholder="com.example.app&#10;com.another.app"></textarea>
+                </div>
+                <div style="margin-top:12px">
+                    <div class="detail-key" style="margin-bottom:6px">O aplicar plantilla:</div>
+                    <select id="c-policy-select" style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--bright);font-family:var(--font-mono);font-size:12px;outline:none;width:100%">
+                        <option value="">Seleccionar plantilla...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="detail-actions">
+            <button class="btn btn-primary" onclick="savePolicy()" style="width:auto;flex:1">Guardar Política</button>
+            <button class="btn btn-success" onclick="setStatus('active')" style="font-size:11px">Activar</button>
+            <button class="btn btn-ghost"   onclick="setStatus('inactive')" style="font-size:11px">Desactivar</button>
+            <button class="btn btn-danger"  onclick="setStatus('blocked')" style="font-size:11px">Bloquear</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let BASE = 'http://localhost:5000';
+let TOKEN = '';
+let currentSerial = null;
+let allDevices = [];
+let allPolicies = [];
+
+// ── Auth ───────────────────────────────────────────────────────────────
+async function login() {
+    TOKEN = document.getElementById('token-input').value.trim();
+    BASE  = document.getElementById('server-input').value.trim().replace(/\/$/, '');
+
+    try {
+        const r = await api('/admin/v1/dashboard');
+        if (r.error) throw new Error(r.error);
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('app').classList.add('visible');
+        document.getElementById('server-label').textContent = BASE.replace('http://', '').replace('https://','');
+        loadDashboard();
+        loadDevicesForHistory();
+    } catch(e) {
+        const el = document.getElementById('auth-error');
+        el.style.display = 'block';
+        el.textContent = 'Error: ' + (e.message || 'No se pudo conectar');
+    }
+}
+
+function logout() {
+    TOKEN = ''; BASE = 'http://localhost:5000';
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('app').classList.remove('visible');
+}
+
+document.getElementById('token-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+// ── API helper ─────────────────────────────────────────────────────────
+async function api(path, options={}) {
+    const r = await fetch(BASE + path, {
+        headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json', ...options.headers },
+        ...options
+    });
+    return r.json();
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+        const tabs = ['dashboard','devices','policies','history'];
+        t.classList.toggle('active', tabs[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+
+    if(name==='dashboard') loadDashboard();
+    if(name==='devices')   loadDevices();
+    if(name==='policies')  loadPolicies();
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────
+async function loadDashboard() {
+    const data = await api('/admin/v1/dashboard');
+    const s = data.summary || {};
+    document.getElementById('s-total').textContent   = s.total_devices ?? '—';
+    document.getElementById('s-online').textContent  = s.online_last_10min ?? '—';
+    document.getElementById('s-active').textContent  = s.active ?? '—';
+    document.getElementById('s-blocked').textContent = s.blocked ?? '—';
+
+    const devData = await api('/admin/v1/devices');
+    const devs = (devData.devices || []).slice(0, 8);
+    const tbody = document.getElementById('dash-devices');
+
+    if(!devs.length) {
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="4">No hay dispositivos registrados</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = devs.map(d => `
+        <tr onclick="openDetail('${d.serial_number}')">
+            <td style="color:var(--accent);font-weight:500">${d.serial_number}</td>
+            <td>${d.model || '—'}</td>
+            <td>${badgeHTML(d.status)}</td>
+            <td style="color:var(--muted)">${fmtDate(d.last_seen)}</td>
+        </tr>`).join('');
+}
+
+// ── Devices ────────────────────────────────────────────────────────────
+async function loadDevices() {
+    const tbody = document.getElementById('devices-table');
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="7"><span class="spinner"></span>Cargando...</td></tr>`;
+    const data = await api('/admin/v1/devices');
+    allDevices = data.devices || [];
+
+    if(!allDevices.length) {
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="7">No hay dispositivos registrados</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = allDevices.map(d => `
+        <tr onclick="openDetail('${d.serial_number}')">
+            <td style="color:var(--accent);font-weight:500">${d.serial_number}</td>
+            <td>${d.manufacturer || '—'}</td>
+            <td>${d.model || '—'}</td>
+            <td>${d.android_version || '—'}</td>
+            <td>${badgeHTML(d.status)}</td>
+            <td style="color:var(--muted);font-size:11px">${fmtDate(d.last_seen)}</td>
+            <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();openDetail('${d.serial_number}')">Ver →</button></td>
+        </tr>`).join('');
+}
+
+// ── Policies ───────────────────────────────────────────────────────────
+async function loadPolicies() {
+    const tbody = document.getElementById('policies-table');
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="6"><span class="spinner"></span>Cargando...</td></tr>`;
+    const data = await api('/admin/v1/policies');
+    allPolicies = data.policies || [];
+    renderPolicies();
+    updatePolicySelect();
+}
+
+function renderPolicies() {
+    const tbody = document.getElementById('policies-table');
+    if(!allPolicies.length) {
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="6">No hay políticas creadas</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = allPolicies.map(p => `
+        <tr>
+            <td style="color:var(--bright);font-weight:500">${p.name}</td>
+            <td style="color:var(--muted)">${p.description || '—'}</td>
+            <td>${p.config.kiosk_mode_enabled ? '<span style="color:var(--accent2)">✓ Sí</span>' : '<span style="color:var(--muted)">No</span>'}</td>
+            <td>${p.config.location_frequency_minutes ?? 5}</td>
+            <td style="color:var(--muted);font-size:11px">${fmtDate(p.created_at)}</td>
+            <td>
+                <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deletePolicy(${p.id}, '${p.name}')">Eliminar</button>
+            </td>
+        </tr>`).join('');
+}
+
+function togglePolicyForm() {
+    document.getElementById('policy-form').classList.toggle('open');
+}
+
+async function createPolicy() {
+    const name = document.getElementById('p-name').value.trim();
+    if(!name) { toast('El nombre es requerido', 'error'); return; }
+
+    const appsRaw = document.getElementById('p-apps').value.trim();
+    const apps = appsRaw ? appsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+
+    const body = {
+        name,
+        description: document.getElementById('p-desc').value.trim(),
+        kiosk_mode_enabled: document.getElementById('p-kiosk').checked,
+        wifi_disabled:      document.getElementById('p-wifi').checked,
+        data_disabled:      document.getElementById('p-data').checked,
+        disallow_factory_reset: document.getElementById('p-reset').checked,
+        disallow_safe_boot:     document.getElementById('p-safe').checked,
+        location_frequency_minutes: parseInt(document.getElementById('p-freq').value) || 5,
+        allowed_apps: apps,
+    };
+
+    const r = await api('/admin/v1/policies', { method:'POST', body: JSON.stringify(body) });
+    if(r.error) { toast(r.error, 'error'); return; }
+
+    toast('Política creada exitosamente', 'success');
+    document.getElementById('policy-form').classList.remove('open');
+    document.getElementById('p-name').value = '';
+    loadPolicies();
+}
+
+async function deletePolicy(id, name) {
+    if(!confirm(`¿Eliminar la política "${name}"?`)) return;
+    const r = await api('/admin/v1/policies/'+id, { method:'DELETE' });
+    if(r.error) { toast(r.error, 'error'); return; }
+    toast('Política eliminada', 'success');
+    loadPolicies();
+}
+
+function updatePolicySelect() {
+    const sel = document.getElementById('c-policy-select');
+    sel.innerHTML = '<option value="">Seleccionar plantilla...</option>' +
+        allPolicies.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+// ── Detail panel ────────────────────────────────────────────────────────
+async function openDetail(serial) {
+    currentSerial = serial;
+    document.getElementById('detail-overlay').classList.add('open');
+
+    const data = await api('/admin/v1/devices/' + serial);
+    const d = data.device;
+    const loc = data.last_location;
+
+    document.getElementById('d-serial').textContent      = d.serial_number;
+    document.getElementById('d-badge').innerHTML         = badgeHTML(d.status);
+    document.getElementById('d-manufacturer').textContent = d.manufacturer || '—';
+    document.getElementById('d-model').textContent       = d.model || '—';
+    document.getElementById('d-android').textContent     = d.android_version || '—';
+    document.getElementById('d-lastseen').textContent    = fmtDate(d.last_seen);
+    document.getElementById('d-registered').textContent  = fmtDate(d.registered_at);
+
+    if(loc) {
+        document.getElementById('d-lat').textContent      = loc.latitude.toFixed(6);
+        document.getElementById('d-lng').textContent      = loc.longitude.toFixed(6);
+        document.getElementById('d-loc-time').textContent = fmtDate(loc.timestamp);
+        document.getElementById('d-maps-link').style.display = 'block';
+        document.getElementById('d-maps-a').href = `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
+    } else {
+        document.getElementById('d-lat').textContent      = 'Sin datos';
+        document.getElementById('d-lng').textContent      = '—';
+        document.getElementById('d-loc-time').textContent = '—';
+        document.getElementById('d-maps-link').style.display = 'none';
+    }
+
+    const cfg = d.config || {};
+    document.getElementById('c-kiosk').checked = !!cfg.kiosk_mode_enabled;
+    document.getElementById('c-wifi').checked  = !!cfg.wifi_disabled;
+    document.getElementById('c-data').checked  = !!cfg.data_disabled;
+    document.getElementById('c-reset').checked = cfg.disallow_factory_reset !== false;
+    document.getElementById('c-safe').checked  = cfg.disallow_safe_boot !== false;
+    document.getElementById('c-freq').value    = cfg.location_frequency_minutes || 5;
+    document.getElementById('c-apps').value    = (cfg.allowed_apps || []).join('\n');
+
+    if(!allPolicies.length) await loadPolicies();
+}
+
+function closeDetail(e) {
+    if(e.target === document.getElementById('detail-overlay')) closeDetailPanel();
+}
+function closeDetailPanel() {
+    document.getElementById('detail-overlay').classList.remove('open');
+    currentSerial = null;
+}
+
+async function savePolicy() {
+    if(!currentSerial) return;
+
+    const policyId = document.getElementById('c-policy-select').value;
+    let body;
+
+    if(policyId) {
+        body = { policy_id: parseInt(policyId) };
+    } else {
+        const appsRaw = document.getElementById('c-apps').value.trim();
+        body = {
+            kiosk_mode_enabled: document.getElementById('c-kiosk').checked,
+            wifi_disabled:      document.getElementById('c-wifi').checked,
+            data_disabled:      document.getElementById('c-data').checked,
+            disallow_factory_reset: document.getElementById('c-reset').checked,
+            disallow_safe_boot:     document.getElementById('c-safe').checked,
+            location_frequency_minutes: parseInt(document.getElementById('c-freq').value) || 5,
+            allowed_apps: appsRaw ? appsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [],
+        };
+    }
+
+    const r = await api('/admin/v1/devices/'+currentSerial+'/policy', { method:'POST', body: JSON.stringify(body) });
+    if(r.error) { toast(r.error, 'error'); return; }
+    toast('Política guardada. El dispositivo la recibirá en su próxima sincronización.', 'success');
+}
+
+async function setStatus(status) {
+    if(!currentSerial) return;
+    const r = await api('/admin/v1/devices/'+currentSerial+'/status', {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+    });
+    if(r.error) { toast(r.error, 'error'); return; }
+    toast(`Dispositivo marcado como ${status}`, 'success');
+    document.getElementById('d-badge').innerHTML = badgeHTML(status);
+}
+
+// ── History ────────────────────────────────────────────────────────────
+async function loadDevicesForHistory() {
+    const data = await api('/admin/v1/devices');
+    const sel = document.getElementById('h-device');
+    (data.devices || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.serial_number;
+        opt.textContent = d.serial_number + (d.model ? ` (${d.model})` : '');
+        sel.appendChild(opt);
+    });
+}
+
+async function loadHistory() {
+    const serial = document.getElementById('h-device').value;
+    if(!serial) { toast('Selecciona un dispositivo', 'error'); return; }
+
+    const start = document.getElementById('h-start').value;
+    const end   = document.getElementById('h-end').value;
+
+    let path = '/admin/v1/devices/'+serial+'/history?limit=200';
+    if(start) path += '&start_date=' + encodeURIComponent(start);
+    if(end)   path += '&end_date='   + encodeURIComponent(end);
+
+    const tbody = document.getElementById('history-table');
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="5"><span class="spinner"></span>Cargando...</td></tr>`;
+
+    const data = await api(path);
+    if(data.error) { toast(data.error, 'error'); tbody.innerHTML=''; return; }
+
+    const locs = data.history || [];
+    if(!locs.length) {
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="5">Sin registros en ese rango</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = locs.map(l => `
+        <tr>
+            <td style="color:var(--muted);font-size:11px">${fmtDate(l.timestamp)}</td>
+            <td class="coord">${l.latitude.toFixed(6)}</td>
+            <td class="coord">${l.longitude.toFixed(6)}</td>
+            <td>${l.accuracy != null ? l.accuracy.toFixed(1) : '—'}</td>
+            <td>${l.speed    != null ? l.speed.toFixed(2)    : '—'}</td>
+        </tr>`).join('');
+
+    toast(`${locs.length} registros encontrados`, 'success');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function badgeHTML(status) {
+    const labels = { active:'Activo', inactive:'Inactivo', blocked:'Bloqueado' };
+    return `<span class="badge badge-${status}"><span class="badge-dot"></span>${labels[status]||status}</span>`;
+}
+
+function fmtDate(iso) {
+    if(!iso) return '—';
+    return new Date(iso).toLocaleString('es-ES', { dateStyle:'short', timeStyle:'short' });
+}
+
+function toast(msg, type='success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.className = '', 3500);
+}
+
+// ── Auto-refresh dashboard ──────────────────────────────────────────────
+setInterval(() => {
+    if(document.getElementById('tab-dashboard').classList.contains('active') &&
+       document.getElementById('app').classList.contains('visible')) {
+        loadDashboard();
+    }
+}, 30000);
+</script>
+</body>
+</html>
