@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MDM Console</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --bg:        #080c10;
@@ -35,7 +37,6 @@
             overflow-x: hidden;
         }
 
-        /* ── Scanline overlay ── */
         body::before {
             content: '';
             position: fixed;
@@ -51,7 +52,6 @@
             z-index: 9999;
         }
 
-        /* ── Header ── */
         header {
             display: flex;
             align-items: center;
@@ -114,7 +114,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* ── Auth overlay ── */
         #auth-overlay {
             position: fixed;
             inset: 0;
@@ -153,9 +152,7 @@
             font-size: 12px;
         }
 
-        .field {
-            margin-bottom: 16px;
-        }
+        .field { margin-bottom: 16px; }
 
         .field label {
             display: block;
@@ -181,7 +178,6 @@
 
         .field input:focus { border-color: var(--accent); }
 
-        /* ── Buttons ── */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -232,7 +228,6 @@
 
         .btn-success:hover { background: rgba(0,255,136,0.1); }
 
-        /* ── Layout ── */
         .app {
             display: none;
             flex: 1;
@@ -241,7 +236,6 @@
 
         .app.visible { display: flex; }
 
-        /* ── Tabs ── */
         .tabs {
             display: flex;
             gap: 0;
@@ -264,7 +258,6 @@
         .tab:hover { color: var(--text); }
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        /* ── Main content ── */
         .main {
             flex: 1;
             padding: 24px;
@@ -274,7 +267,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ── Stats grid ── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -327,7 +319,6 @@
         .stat-card.red   .stat-value { color: var(--danger); }
         .stat-card.yellow .stat-value{ color: var(--warn); }
 
-        /* ── Table ── */
         .section-header {
             display: flex;
             align-items: center;
@@ -349,10 +340,7 @@
             overflow: hidden;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        table { width: 100%; border-collapse: collapse; }
 
         thead tr {
             background: var(--panel);
@@ -406,7 +394,6 @@
             background: currentColor;
         }
 
-        /* ── Detail panel ── */
         .detail-overlay {
             position: fixed;
             inset: 0;
@@ -452,9 +439,7 @@
 
         .detail-body { padding: 24px; flex: 1; }
 
-        .detail-section {
-            margin-bottom: 24px;
-        }
+        .detail-section { margin-bottom: 24px; }
 
         .detail-section-title {
             font-size: 10px;
@@ -557,7 +542,6 @@
             flex-wrap: wrap;
         }
 
-        /* ── Policy form ── */
         .policy-form {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -578,18 +562,124 @@
 
         .form-actions { display: flex; gap: 8px; }
 
-        /* ── Map ── */
-        #map {
-            width: 100%;
-            height: 500px;
-            background: var(--panel);
+        /* ── MAP ── */
+        #map-container {
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #live-map {
+            width: 100%;
+            height: 560px;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 6px;
+            font-size: 11px;
             color: var(--muted);
-            font-size: 13px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Leaflet dark theme overrides */
+        .leaflet-container {
+            background: #0d1117 !important;
+            font-family: var(--font-mono) !important;
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            color: var(--text) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--surface) !important;
+        }
+
+        .leaflet-popup-content {
+            font-family: var(--font-mono) !important;
+            font-size: 12px !important;
+            color: var(--text) !important;
+            margin: 12px 16px !important;
+        }
+
+        .leaflet-popup-close-button {
+            color: var(--muted) !important;
+        }
+
+        .map-device-list {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .map-device-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .map-device-card:hover { border-color: var(--accent); }
+
+        .map-device-card.no-location {
+            opacity: 0.5;
+        }
+
+        .map-device-info .serial {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .map-device-info .model {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .map-device-info .coords {
+            color: var(--accent2);
+            font-size: 10px;
+            margin-top: 4px;
         }
 
         /* ── History ── */
@@ -603,7 +693,6 @@
 
         .history-controls .field { margin: 0; flex: 1; min-width: 160px; }
 
-        /* ── Toast ── */
         #toast {
             position: fixed;
             bottom: 24px;
@@ -625,7 +714,6 @@
         #toast.success { border-color: var(--accent2); color: var(--accent2); }
         #toast.error   { border-color: var(--danger);  color: var(--danger);  }
 
-        /* ── Empty state ── */
         .empty {
             text-align: center;
             padding: 60px 20px;
@@ -635,7 +723,6 @@
         .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
         .empty p    { font-size: 13px; }
 
-        /* ── Loading ── */
         .loading-row td {
             text-align: center;
             padding: 40px;
@@ -655,10 +742,8 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── History table ── */
         .coord { font-family: var(--font-mono); color: var(--accent); font-size: 11px; }
 
-        /* ── Config token display ── */
         .token-box {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -713,6 +798,7 @@
     <div class="tabs">
         <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
         <div class="tab" onclick="switchTab('devices')">Dispositivos</div>
+        <div class="tab" onclick="switchTab('map')">🗺 Mapa en Vivo</div>
         <div class="tab" onclick="switchTab('policies')">Políticas</div>
         <div class="tab" onclick="switchTab('history')">Historial GPS</div>
     </div>
@@ -768,6 +854,43 @@
                     <tbody id="devices-table"></tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="tab-content" id="tab-map">
+            <div class="section-header">
+                <div class="section-title">Mapa en Vivo</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <span style="color:var(--muted);font-size:11px" id="map-last-update">—</span>
+                    <button class="btn btn-ghost" onclick="refreshMap()">↺ Actualizar</button>
+                </div>
+            </div>
+
+            <div class="map-controls">
+                <div style="display:flex;gap:8px;align-items:center">
+                    <label style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.08em">Auto-refresh:</label>
+                    <label class="toggle" style="position:relative;width:40px;height:22px">
+                        <input type="checkbox" id="map-autorefresh" checked onchange="toggleMapAutoRefresh()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="color:var(--muted);font-size:11px">cada 30s</span>
+                </div>
+                <button class="btn btn-ghost" onclick="fitMapBounds()" style="font-size:11px">⊕ Ver todos</button>
+            </div>
+
+            <div id="map-container">
+                <div id="live-map"></div>
+            </div>
+
+            <div class="map-legend">
+                <span style="color:var(--muted);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Leyenda:</span>
+                <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div>Activo</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div>Inactivo</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ff4455"></div>Bloqueado</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#4a5568"></div>Sin ubicación</div>
+            </div>
+
+            <div class="map-device-list" id="map-device-list"></div>
         </div>
 
         <!-- POLICIES -->
@@ -958,6 +1081,11 @@ let currentSerial = null;
 let allDevices = [];
 let allPolicies = [];
 
+// ── Map state ──────────────────────────────────────────────────────────
+let liveMap = null;
+let mapMarkers = {};
+let mapAutoRefreshInterval = null;
+
 // ── Auth ───────────────────────────────────────────────────────────────
 async function login() {
     TOKEN = document.getElementById('token-input').value.trim();
@@ -982,6 +1110,7 @@ function logout() {
     TOKEN = ''; BASE = 'http://localhost:5000';
     document.getElementById('auth-overlay').style.display = 'flex';
     document.getElementById('app').classList.remove('visible');
+    if(mapAutoRefreshInterval) clearInterval(mapAutoRefreshInterval);
 }
 
 document.getElementById('token-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
@@ -997,8 +1126,8 @@ async function api(path, options={}) {
 
 // ── Tabs ───────────────────────────────────────────────────────────────
 function switchTab(name) {
+    const tabs = ['dashboard','devices','map','policies','history'];
     document.querySelectorAll('.tab').forEach((t,i) => {
-        const tabs = ['dashboard','devices','policies','history'];
         t.classList.toggle('active', tabs[i] === name);
     });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1007,6 +1136,7 @@ function switchTab(name) {
     if(name==='dashboard') loadDashboard();
     if(name==='devices')   loadDevices();
     if(name==='policies')  loadPolicies();
+    if(name==='map')       initAndLoadMap();
 }
 
 // ── Dashboard ──────────────────────────────────────────────────────────
@@ -1058,6 +1188,169 @@ async function loadDevices() {
             <td style="color:var(--muted);font-size:11px">${fmtDate(d.last_seen)}</td>
             <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();openDetail('${d.serial_number}')">Ver →</button></td>
         </tr>`).join('');
+}
+
+// ── MAP ────────────────────────────────────────────────────────────────
+function initAndLoadMap() {
+    if(!liveMap) {
+        liveMap = L.map('live-map', {
+            center: [4.7, -74.1],
+            zoom: 11,
+            zoomControl: true,
+        });
+
+        // OpenStreetMap tile layer - dark style
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(liveMap);
+    }
+
+    refreshMap();
+
+    if(document.getElementById('map-autorefresh').checked) {
+        startMapAutoRefresh();
+    }
+}
+
+function startMapAutoRefresh() {
+    if(mapAutoRefreshInterval) clearInterval(mapAutoRefreshInterval);
+    mapAutoRefreshInterval = setInterval(() => {
+        if(document.getElementById('tab-map').classList.contains('active')) {
+            refreshMap();
+        }
+    }, 30000);
+}
+
+function toggleMapAutoRefresh() {
+    if(document.getElementById('map-autorefresh').checked) {
+        startMapAutoRefresh();
+        toast('Auto-refresh activado', 'success');
+    } else {
+        if(mapAutoRefreshInterval) clearInterval(mapAutoRefreshInterval);
+        toast('Auto-refresh desactivado');
+    }
+}
+
+async function refreshMap() {
+    if(!liveMap) return;
+
+    const data = await api('/admin/v1/devices');
+    const devices = data.devices || [];
+
+    // Clear old markers
+    Object.values(mapMarkers).forEach(m => liveMap.removeLayer(m));
+    mapMarkers = {};
+
+    const withLocation = [];
+    const deviceListEl = document.getElementById('map-device-list');
+    deviceListEl.innerHTML = '';
+
+    for(const d of devices) {
+        const detailData = await api('/admin/v1/devices/' + d.serial_number);
+        const loc = detailData.last_location;
+
+        // Build device card
+        const card = document.createElement('div');
+        card.className = 'map-device-card' + (loc ? '' : ' no-location');
+        card.innerHTML = `
+            <div class="map-device-info">
+                <div class="serial">${d.serial_number}</div>
+                <div class="model">${d.manufacturer || ''} ${d.model || ''} · Android ${d.android_version || '?'}</div>
+                ${loc ? `<div class="coords">📍 ${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}</div>` : '<div class="coords" style="color:var(--muted)">Sin ubicación</div>'}
+            </div>
+            <div>${badgeHTML(d.status)}</div>
+        `;
+
+        if(loc) {
+            card.onclick = () => {
+                liveMap.flyTo([loc.latitude, loc.longitude], 15, { animate: true, duration: 1 });
+                mapMarkers[d.serial_number]?.openPopup();
+            };
+        }
+
+        deviceListEl.appendChild(card);
+
+        if(!loc) continue;
+
+        withLocation.push({ device: d, loc });
+
+        // Color by status
+        const colors = { active: '#00ff88', inactive: '#ffaa00', blocked: '#ff4455' };
+        const color = colors[d.status] || '#4a5568';
+
+        // Custom marker icon
+        const icon = L.divIcon({
+            className: '',
+            html: `
+                <div style="
+                    width: 32px;
+                    height: 32px;
+                    background: ${color};
+                    border: 3px solid #080c10;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    box-shadow: 0 0 12px ${color}88;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <div style="
+                        width: 8px;
+                        height: 8px;
+                        background: #080c10;
+                        border-radius: 50%;
+                        transform: rotate(45deg);
+                    "></div>
+                </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -36]
+        });
+
+        const marker = L.marker([loc.latitude, loc.longitude], { icon })
+            .addTo(liveMap)
+            .bindPopup(`
+                <div style="min-width:200px">
+                    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:8px">
+                        ${d.serial_number}
+                    </div>
+                    <div style="color:#4a5568;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Dispositivo</div>
+                    <div style="color:#c9d1d9;margin-bottom:8px">${d.manufacturer || ''} ${d.model || ''}</div>
+                    <div style="color:#4a5568;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Ubicación</div>
+                    <div style="color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;margin-bottom:4px">
+                        ${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}
+                    </div>
+                    <div style="color:#4a5568;font-size:10px;margin-bottom:8px">${fmtDate(loc.timestamp)}</div>
+                    <a href="https://www.google.com/maps?q=${loc.latitude},${loc.longitude}" target="_blank"
+                       style="color:#00d4ff;font-size:11px;text-decoration:none">
+                       🗺 Abrir en Google Maps →
+                    </a>
+                </div>
+            `);
+
+        mapMarkers[d.serial_number] = marker;
+    }
+
+    // Update last refresh time
+    document.getElementById('map-last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES');
+
+    // Fit bounds if there are markers
+    if(withLocation.length > 0 && Object.keys(mapMarkers).length > 0) {
+        fitMapBounds();
+    }
+}
+
+function fitMapBounds() {
+    const markers = Object.values(mapMarkers);
+    if(!liveMap || markers.length === 0) return;
+    if(markers.length === 1) {
+        liveMap.flyTo(markers[0].getLatLng(), 14, { animate: true, duration: 1 });
+    } else {
+        const group = L.featureGroup(markers);
+        liveMap.flyToBounds(group.getBounds().pad(0.2), { animate: true, duration: 1 });
+    }
 }
 
 // ── Policies ───────────────────────────────────────────────────────────
