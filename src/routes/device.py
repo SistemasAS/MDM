@@ -1,8 +1,11 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask import Blueprint
+from src.models.device import db
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 import json
-
 db = SQLAlchemy()
+
+device_bp = Blueprint('device', __name__)
 
 
 class Device(db.Model):
