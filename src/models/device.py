@@ -10,6 +10,7 @@ class Device(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     serial_number = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    device_name = db.Column(db.String(100), nullable=True)
     device_token = db.Column(db.String(200), unique=True, nullable=True)  # JWT token for device auth
     manufacturer = db.Column(db.String(100), nullable=True)
     model = db.Column(db.String(100), nullable=True)
@@ -27,6 +28,7 @@ class Device(db.Model):
         result = {
             'id': self.id,
             'serial_number': self.serial_number,
+            'device_name': self.device_name,
             'manufacturer': self.manufacturer,
             'model': self.model,
             'android_version': self.android_version,

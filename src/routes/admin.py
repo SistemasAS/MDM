@@ -18,17 +18,10 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.route('/devices', methods=['GET'])
 @require_admin_auth
 def list_devices():
-    """
-    Lista todos los dispositivos registrados.
-    Query params opcionales:
-        status (str): Filtrar por estado (active / inactive / blocked)
-    """
     status_filter = request.args.get('status')
     query = Device.query
-
     if status_filter:
         query = query.filter_by(status=status_filter)
-
     devices = query.order_by(Device.last_seen.desc()).all()
     return jsonify({'devices': [d.to_dict() for d in devices], 'total': len(devices)}), 200
 
@@ -36,7 +29,6 @@ def list_devices():
 @admin_bp.route('/devices/<serial>', methods=['GET'])
 @require_admin_auth
 def get_device_details(serial):
-    """Obtiene los detalles completos de un dispositivo, incluyendo última ubicación."""
     device = Device.query.filter_by(serial_number=serial).first()
     if not device:
         return jsonify({'error': 'Dispositivo no encontrado'}), 404
@@ -54,14 +46,26 @@ def get_device_details(serial):
     }), 200
 
 
+@admin_bp.route('/devices/<serial>/name', methods=['PATCH'])
+@require_admin_auth
+def update_device_name(serial):
+    """Actualiza el nombre personalizado de un dispositivo."""
+    device = Device.query.filter_by(serial_number=serial).first()
+    if not device:
+        return jsonify({'error': 'Dispositivo no encontrado'}), 404
+
+    data = request.get_json(silent=True) or {}
+    name = data.get('device_name', '').strip()
+
+    device.device_name = name
+    db.session.commit()
+
+    return jsonify({'message': 'Nombre actualizado', 'device': device.to_dict()}), 200
+
+
 @admin_bp.route('/devices/<serial>/status', methods=['PATCH'])
 @require_admin_auth
 def update_device_status(serial):
-    """
-    Cambia el estado de un dispositivo.
-    Body JSON:
-        status (str): 'active' | 'inactive' | 'blocked'
-    """
     device = Device.query.filter_by(serial_number=serial).first()
     if not device:
         return jsonify({'error': 'Dispositivo no encontrado'}), 404
@@ -81,24 +85,6 @@ def update_device_status(serial):
 @admin_bp.route('/devices/<serial>/policy', methods=['POST'])
 @require_admin_auth
 def assign_policy(serial):
-    """
-    Asigna una configuración de política a un dispositivo.
-    Puede recibir un policy_id para copiar una plantilla,
-    o los campos directamente.
-
-    Body JSON (opción A - usar plantilla):
-        policy_id (int): ID de la política a aplicar
-
-    Body JSON (opción B - configuración directa):
-        kiosk_mode_enabled         (bool)
-        allowed_apps               (list[str])  lista de package names
-        wifi_disabled              (bool)
-        data_disabled              (bool)
-        location_frequency_minutes (int)
-        disallow_factory_reset     (bool)
-        disallow_safe_boot         (bool)
-        disallow_airplane_mode     (bool)
-    """
     device = Device.query.filter_by(serial_number=serial).first()
     if not device:
         return jsonify({'error': 'Dispositivo no encontrado'}), 404
@@ -107,14 +93,12 @@ def assign_policy(serial):
     if not data:
         return jsonify({'error': 'Body JSON requerido'}), 400
 
-    # Opción A: aplicar una plantilla de política
     if 'policy_id' in data:
         policy = Policy.query.get(data['policy_id'])
         if not policy:
             return jsonify({'error': 'Política no encontrada'}), 404
         config = policy.get_config()
     else:
-        # Opción B: configuración directa
         current_config = device.get_config() or device.get_default_config()
         config = {
             'kiosk_mode_enabled': data.get('kiosk_mode_enabled', current_config.get('kiosk_mode_enabled', False)),
@@ -130,22 +114,12 @@ def assign_policy(serial):
     device.set_config(config)
     db.session.commit()
 
-    return jsonify({
-        'message': 'Política asignada exitosamente',
-        'device': device.to_dict(),
-    }), 200
+    return jsonify({'message': 'Política asignada exitosamente', 'device': device.to_dict()}), 200
 
 
 @admin_bp.route('/devices/<serial>/history', methods=['GET'])
 @require_admin_auth
 def get_location_history(serial):
-    """
-    Historial de ubicaciones de un dispositivo.
-    Query params opcionales:
-        start_date (str): ISO 8601 (ej: 2024-01-01T00:00:00)
-        end_date   (str): ISO 8601
-        limit      (int): Máximo de registros (default: 500)
-    """
     device = Device.query.filter_by(serial_number=serial).first()
     if not device:
         return jsonify({'error': 'Dispositivo no encontrado'}), 404
@@ -160,13 +134,13 @@ def get_location_history(serial):
         try:
             query = query.filter(LocationHistory.timestamp >= datetime.fromisoformat(start_date))
         except ValueError:
-            return jsonify({'error': 'Formato de start_date inválido (usar ISO 8601)'}), 400
+            return jsonify({'error': 'Formato de start_date inválido'}), 400
 
     if end_date:
         try:
             query = query.filter(LocationHistory.timestamp <= datetime.fromisoformat(end_date))
         except ValueError:
-            return jsonify({'error': 'Formato de end_date inválido (usar ISO 8601)'}), 400
+            return jsonify({'error': 'Formato de end_date inválido'}), 400
 
     locations = query.order_by(LocationHistory.timestamp.desc()).limit(limit).all()
 
@@ -180,7 +154,6 @@ def get_location_history(serial):
 @admin_bp.route('/devices/<serial>', methods=['DELETE'])
 @require_admin_auth
 def delete_device(serial):
-    """Elimina un dispositivo y todo su historial."""
     device = Device.query.filter_by(serial_number=serial).first()
     if not device:
         return jsonify({'error': 'Dispositivo no encontrado'}), 404
@@ -191,13 +164,12 @@ def delete_device(serial):
 
 
 # ─────────────────────────────────────────────
-# POLÍTICAS (PLANTILLAS)
+# POLÍTICAS
 # ─────────────────────────────────────────────
 
 @admin_bp.route('/policies', methods=['GET'])
 @require_admin_auth
 def list_policies():
-    """Lista todas las plantillas de políticas."""
     policies = Policy.query.order_by(Policy.created_at.desc()).all()
     return jsonify({'policies': [p.to_dict() for p in policies], 'total': len(policies)}), 200
 
@@ -205,13 +177,6 @@ def list_policies():
 @admin_bp.route('/policies', methods=['POST'])
 @require_admin_auth
 def create_policy():
-    """
-    Crea una nueva plantilla de política.
-    Body JSON:
-        name        (str): Nombre único de la política
-        description (str, opcional): Descripción
-        + campos de configuración (mismos que assign_policy opción B)
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({'error': 'Body JSON requerido'}), 400
@@ -245,7 +210,6 @@ def create_policy():
 @admin_bp.route('/policies/<int:policy_id>', methods=['PUT'])
 @require_admin_auth
 def update_policy(policy_id):
-    """Actualiza una plantilla de política existente."""
     policy = Policy.query.get(policy_id)
     if not policy:
         return jsonify({'error': 'Política no encontrada'}), 404
@@ -283,7 +247,6 @@ def update_policy(policy_id):
 @admin_bp.route('/policies/<int:policy_id>', methods=['DELETE'])
 @require_admin_auth
 def delete_policy(policy_id):
-    """Elimina una plantilla de política."""
     policy = Policy.query.get(policy_id)
     if not policy:
         return jsonify({'error': 'Política no encontrada'}), 404
@@ -294,13 +257,12 @@ def delete_policy(policy_id):
 
 
 # ─────────────────────────────────────────────
-# DASHBOARD / ESTADÍSTICAS
+# DASHBOARD
 # ─────────────────────────────────────────────
 
 @admin_bp.route('/dashboard', methods=['GET'])
 @require_admin_auth
 def dashboard():
-    """Retorna estadísticas generales para el panel de control."""
     from datetime import timedelta
 
     total = Device.query.count()
@@ -308,7 +270,6 @@ def dashboard():
     inactive = Device.query.filter_by(status='inactive').count()
     blocked = Device.query.filter_by(status='blocked').count()
 
-    # Dispositivos vistos en los últimos 10 minutos = "online"
     ten_min_ago = datetime.utcnow() - timedelta(minutes=10)
     online = Device.query.filter(
         Device.last_seen >= ten_min_ago,
