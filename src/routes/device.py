@@ -1,119 +1,113 @@
-from flask import Blueprint
-from src.models.device import db
+"""
+Rutas del dispositivo Android.
+Prefijo: /api/v1
+"""
+from flask import Blueprint, request, jsonify
+from src.models.device import db, Device, LocationHistory
+from src.auth import require_device_auth
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-import json
-db = SQLAlchemy()
 
 device_bp = Blueprint('device', __name__)
 
 
-class Device(db.Model):
-    __tablename__ = 'devices'
+@device_bp.route('/devices/register', methods=['POST'])
+def register_device():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'error': 'Body JSON requerido'}), 400
 
-    id = db.Column(db.Integer, primary_key=True)
-    serial_number = db.Column(db.String(100), unique=True, nullable=False, index=True)
-    device_name = db.Column(db.String(100), nullable=True)  # Nombre personalizado
-    device_token = db.Column(db.String(200), unique=True, nullable=True)
-    manufacturer = db.Column(db.String(100), nullable=True)
-    model = db.Column(db.String(100), nullable=True)
-    android_version = db.Column(db.String(20), nullable=True)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='active')
-    config_json = db.Column(db.Text, default='{}')
+    from src.auth import verify_registration_key, generate_device_token
+    if not verify_registration_key(data.get('registration_key', '')):
+        return jsonify({'error': 'Clave de registro inválida'}), 401
 
-    location_history = db.relationship(
-        'LocationHistory', backref='device', lazy=True, cascade="all, delete-orphan"
+    serial = data.get('serial_number', '').strip()
+    if not serial:
+        return jsonify({'error': 'serial_number requerido'}), 400
+
+    device = Device.query.filter_by(serial_number=serial).first()
+    if not device:
+        device = Device(serial_number=serial)
+        db.session.add(device)
+
+    device.manufacturer = data.get('manufacturer')
+    device.model = data.get('model')
+    device.android_version = data.get('android_version')
+    device.last_seen = datetime.utcnow()
+    device.status = 'active'
+
+    token = generate_device_token(serial)
+    device.device_token = token
+    db.session.commit()
+
+    message = 'Dispositivo re-enrolado exitosamente' if device.id else 'Dispositivo registrado exitosamente'
+
+    return jsonify({
+        'message': message,
+        'device_token': token,
+        'device': device.to_dict(),
+    }), 201
+
+
+@device_bp.route('/devices/<serial>/location', methods=['POST'])
+@require_device_auth
+def report_location(serial):
+    device = Device.query.filter_by(serial_number=serial).first()
+    if not device:
+        return jsonify({'error': 'Dispositivo no encontrado'}), 404
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'error': 'Body JSON requerido'}), 400
+
+    lat = data.get('latitude')
+    lng = data.get('longitude')
+    if lat is None or lng is None:
+        return jsonify({'error': 'latitude y longitude requeridos'}), 400
+
+    location = LocationHistory(
+        device_id=device.id,
+        latitude=float(lat),
+        longitude=float(lng),
+        accuracy=data.get('accuracy'),
+        altitude=data.get('altitude'),
+        speed=data.get('speed'),
     )
+    db.session.add(location)
+    device.last_seen = datetime.utcnow()
+    db.session.commit()
 
-    def to_dict(self, include_token=False):
-        result = {
-            'id': self.id,
-            'serial_number': self.serial_number,
-            'device_name': self.device_name or '',
-            'manufacturer': self.manufacturer,
-            'model': self.model,
-            'android_version': self.android_version,
-            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'registered_at': self.registered_at.isoformat() if self.registered_at else None,
-            'status': self.status,
-            'config': self.get_config(),
-        }
-        if include_token:
-            result['device_token'] = self.device_token
-        return result
-
-    def get_config(self):
-        try:
-            return json.loads(self.config_json) if self.config_json else {}
-        except json.JSONDecodeError:
-            return {}
-
-    def set_config(self, config_dict):
-        self.config_json = json.dumps(config_dict)
-
-    def get_default_config(self):
-        return {
-            'kiosk_mode_enabled': False,
-            'allowed_apps': [],
-            'wifi_disabled': False,
-            'data_disabled': False,
-            'location_frequency_minutes': 5,
-            'disallow_factory_reset': True,
-            'disallow_safe_boot': True,
-            'disallow_airplane_mode': False,
-        }
+    return jsonify({'message': 'Ubicación registrada'}), 201
 
 
-class Policy(db.Model):
-    __tablename__ = 'policies'
+@device_bp.route('/devices/<serial>/config', methods=['GET'])
+@require_device_auth
+def get_config(serial):
+    device = Device.query.filter_by(serial_number=serial).first()
+    if not device:
+        return jsonify({'error': 'Dispositivo no encontrado'}), 404
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(255), nullable=True)
-    config_json = db.Column(db.Text, default='{}')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    device.last_seen = datetime.utcnow()
+    db.session.commit()
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'config': self.get_config(),
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
+    config = device.get_config()
+    if not config:
+        config = device.get_default_config()
 
-    def get_config(self):
-        try:
-            return json.loads(self.config_json) if self.config_json else {}
-        except json.JSONDecodeError:
-            return {}
-
-    def set_config(self, config_dict):
-        self.config_json = json.dumps(config_dict)
+    return jsonify({
+        'serial_number': serial,
+        'status': device.status,
+        'config': config,
+    }), 200
 
 
-class LocationHistory(db.Model):
-    __tablename__ = 'location_history'
+@device_bp.route('/devices/<serial>/heartbeat', methods=['POST'])
+@require_device_auth
+def heartbeat(serial):
+    device = Device.query.filter_by(serial_number=serial).first()
+    if not device:
+        return jsonify({'error': 'Dispositivo no encontrado'}), 404
 
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), nullable=False, index=True)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    accuracy = db.Column(db.Float, nullable=True)
-    altitude = db.Column(db.Float, nullable=True)
-    speed = db.Column(db.Float, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    device.last_seen = datetime.utcnow()
+    db.session.commit()
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'device_id': self.device_id,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'accuracy': self.accuracy,
-            'altitude': self.altitude,
-            'speed': self.speed,
-            'timestamp': self.timestamp.isoformat(),
-        }
+    return jsonify({'message': 'OK', 'status': device.status}), 200
