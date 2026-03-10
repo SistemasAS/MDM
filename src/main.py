@@ -41,6 +41,14 @@ app.register_blueprint(admin_bp, url_prefix='/admin/v1')
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    # Migración manual: agregar columna device_name si no existe
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE devices ADD COLUMN device_name VARCHAR(100)'))
+            conn.commit()
+    except Exception:
+        pass  # La columna ya existe, ignorar
 
 # ── Manejo de errores global ───────────────────────────────────────────────────
 @app.errorhandler(404)
