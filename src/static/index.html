@@ -787,14 +787,7 @@
         /* MAP */
         #live-map {
             width: 100%;
-            height: 480px;
-        }
-
-        .map-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 14px;
-            align-items: start;
+            height: 460px;
         }
 
         #map-container {
@@ -831,16 +824,16 @@
             border-radius: 50%;
         }
 
-        /* Map history panel */
         .map-history-panel {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
+            margin-top: 14px;
         }
 
         .map-history-header {
-            padding: 14px 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             font-size: 13px;
             font-weight: 700;
@@ -851,13 +844,12 @@
             padding: 10px 14px;
             border-bottom: 1px solid var(--border);
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .map-history-controls select,
         .map-history-controls input {
-            width: 100%;
+            flex: 1;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -874,23 +866,22 @@
         }
 
         .map-history-list {
-            max-height: 380px;
+            max-height: 200px;
             overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
         }
 
         .history-item {
             padding: 9px 14px;
             border-bottom: 1px solid rgba(30, 45, 61, 0.5);
+            border-right: 1px solid rgba(30, 45, 61, 0.3);
             cursor: pointer;
             transition: background 0.15s;
         }
 
         .history-item:hover {
             background: var(--panel);
-        }
-
-        .history-item:last-child {
-            border-bottom: none;
         }
 
         .history-item .h-time {
@@ -912,19 +903,17 @@
             margin-top: 2px;
         }
 
-        /* Compact device list for map */
         .map-device-list {
-            margin-top: 14px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .map-device-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 10px 14px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -950,6 +939,7 @@
             color: var(--accent);
             font-size: 10px;
             font-weight: 500;
+            font-family: monospace;
         }
 
         .map-device-info .coords {
@@ -1203,7 +1193,8 @@
                             todos</button>
                     </div>
                 </div>
-                <div class="map-layout">
+                <div style="display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start;">
+                    <!-- Columna izquierda: mapa + leyenda + historial -->
                     <div>
                         <div id="map-container">
                             <div id="live-map"></div>
@@ -1221,19 +1212,29 @@
                                 <div class="legend-dot" style="background:#ff4455"></div>Bloqueado
                             </div>
                         </div>
-                        <div class="map-device-list" id="map-device-list"></div>
-                    </div>
-                    <div class="map-history-panel">
-                        <div class="map-history-header">📍 Historial GPS</div>
-                        <div class="map-history-controls">
-                            <select id="h-device" onchange="loadHistoryForMap()">
-                                <option value="">Selecciona dispositivo...</option>
-                            </select>
-                            <input type="date" id="h-date" onchange="loadHistoryForMap()" />
+                        <!-- Historial GPS debajo del mapa -->
+                        <div class="map-history-panel">
+                            <div class="map-history-header">📍 Historial GPS</div>
+                            <div class="map-history-controls">
+                                <select id="h-device" onchange="loadHistoryForMap()">
+                                    <option value="">Selecciona dispositivo...</option>
+                                </select>
+                                <input type="date" id="h-date" onchange="loadHistoryForMap()" />
+                            </div>
+                            <div class="map-history-list scrollbar" id="history-list">
+                                <div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Selecciona
+                                    un dispositivo</div>
+                            </div>
                         </div>
-                        <div class="map-history-list scrollbar" id="history-list">
-                            <div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Selecciona un
-                                dispositivo</div>
+                    </div>
+                    <!-- Columna derecha: lista de dispositivos -->
+                    <div>
+                        <div
+                            style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+                            Dispositivos</div>
+                        <div class="map-device-list" id="map-device-list">
+                            <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Cargando...
+                            </div>
                         </div>
                     </div>
                 </div>
