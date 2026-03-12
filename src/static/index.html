@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MDM Console</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -23,8 +22,7 @@
             --text: #c9d1d9;
             --muted: #4a5568;
             --bright: #e6edf3;
-            --font-mono: 'JetBrains Mono', monospace;
-            --font-sans: 'Syne', sans-serif;
+            --font: 'Montserrat', sans-serif;
         }
 
         * {
@@ -36,7 +34,7 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 13px;
             min-height: 100vh;
             display: flex;
@@ -48,7 +46,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.015) 2px, rgba(0, 212, 255, 0.015) 4px);
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.012) 2px, rgba(0, 212, 255, 0.012) 4px);
             pointer-events: none;
             z-index: 9999;
         }
@@ -67,11 +65,10 @@
         }
 
         .logo {
-            font-family: var(--font-sans);
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             color: var(--bright);
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -122,7 +119,8 @@
         .server-status {
             color: var(--accent2);
             font-size: 11px;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
+            font-weight: 500;
         }
 
         #auth-overlay {
@@ -157,7 +155,6 @@
         }
 
         .auth-box h2 {
-            font-family: var(--font-sans);
             font-size: 24px;
             font-weight: 800;
             color: var(--bright);
@@ -178,9 +175,10 @@
             display: block;
             color: var(--muted);
             font-size: 11px;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .field input {
@@ -190,7 +188,7 @@
             border-radius: 6px;
             padding: 10px 14px;
             color: var(--bright);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 13px;
             outline: none;
             transition: border-color 0.2s;
@@ -207,12 +205,11 @@
             padding: 9px 18px;
             border-radius: 6px;
             border: none;
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            letter-spacing: 0.02em;
         }
 
         .btn-primary {
@@ -284,8 +281,9 @@
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
+            font-weight: 600;
         }
 
         .tab:hover {
@@ -311,18 +309,19 @@
             display: block;
         }
 
+        /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 20px;
+            padding: 18px;
             position: relative;
             overflow: hidden;
             transition: border-color 0.2s;
@@ -361,13 +360,13 @@
             font-size: 10px;
             color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .stat-value {
-            font-family: var(--font-sans);
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 800;
             color: var(--bright);
             line-height: 1;
@@ -389,6 +388,58 @@
             color: var(--warn);
         }
 
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-family: var(--font);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .filter-btn.active-filter {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+
+        .filter-btn.inactive-filter {
+            background: rgba(74, 85, 104, 0.2);
+            border-color: var(--muted);
+            color: var(--muted);
+        }
+
+        .filter-btn.blocked-filter {
+            background: rgba(255, 68, 85, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
         .section-header {
             display: flex;
             align-items: center;
@@ -397,8 +448,7 @@
         }
 
         .section-title {
-            font-family: var(--font-sans);
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--bright);
         }
@@ -421,13 +471,13 @@
         }
 
         th {
-            padding: 12px 16px;
+            padding: 11px 16px;
             text-align: left;
             font-size: 10px;
             color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 500;
+            letter-spacing: 0.08em;
+            font-weight: 600;
         }
 
         tbody tr {
@@ -445,7 +495,7 @@
         }
 
         td {
-            padding: 12px 16px;
+            padding: 11px 16px;
             font-size: 12px;
             color: var(--text);
         }
@@ -457,8 +507,8 @@
             padding: 3px 10px;
             border-radius: 20px;
             font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.05em;
+            font-weight: 600;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
@@ -487,6 +537,7 @@
             background: currentColor;
         }
 
+        /* Detail panel */
         .detail-overlay {
             position: fixed;
             inset: 0;
@@ -502,7 +553,7 @@
         }
 
         .detail-panel {
-            width: 480px;
+            width: 460px;
             height: 100vh;
             background: var(--surface);
             border-left: 1px solid var(--border);
@@ -523,7 +574,7 @@
         }
 
         .detail-header {
-            padding: 24px;
+            padding: 20px 24px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -531,41 +582,42 @@
         }
 
         .detail-serial {
-            font-family: var(--font-sans);
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--bright);
         }
 
         .detail-body {
-            padding: 24px;
+            padding: 20px 24px;
             flex: 1;
         }
 
         .detail-section {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .detail-section-title {
             font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: var(--muted);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
+            font-weight: 600;
         }
 
         .detail-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 7px 0;
         }
 
         .detail-key {
             color: var(--muted);
             font-size: 11px;
+            font-weight: 500;
         }
 
         .detail-val {
@@ -581,7 +633,6 @@
             align-items: center;
             gap: 8px;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(30, 45, 61, 0.5);
         }
 
         .name-input {
@@ -591,7 +642,7 @@
             border-radius: 6px;
             padding: 7px 12px;
             color: var(--bright);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 12px;
             outline: none;
             transition: border-color 0.2s;
@@ -609,13 +660,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 9px 0;
             border-bottom: 1px solid rgba(30, 45, 61, 0.5);
         }
 
         .toggle-label {
             color: var(--text);
             font-size: 12px;
+            font-weight: 500;
         }
 
         .toggle {
@@ -668,7 +720,7 @@
             border-radius: 4px;
             padding: 4px 8px;
             color: var(--bright);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 12px;
             width: 70px;
             text-align: center;
@@ -686,11 +738,11 @@
             border-radius: 6px;
             padding: 10px;
             color: var(--bright);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 11px;
             outline: none;
             resize: vertical;
-            min-height: 80px;
+            min-height: 70px;
             margin-top: 8px;
         }
 
@@ -701,17 +753,18 @@
         .detail-actions {
             display: flex;
             gap: 8px;
-            padding: 16px 24px;
+            padding: 14px 24px;
             border-top: 1px solid var(--border);
             flex-wrap: wrap;
         }
 
+        /* Policy form */
         .policy-form {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
             display: none;
         }
 
@@ -722,8 +775,8 @@
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
+            gap: 14px;
+            margin-bottom: 14px;
         }
 
         .form-actions {
@@ -734,13 +787,13 @@
         /* MAP */
         #live-map {
             width: 100%;
-            height: 500px;
+            height: 480px;
         }
 
         .map-layout {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 16px;
+            grid-template-columns: 1fr 300px;
+            gap: 14px;
             align-items: start;
         }
 
@@ -753,10 +806,10 @@
 
         .map-legend {
             display: flex;
-            gap: 16px;
+            gap: 14px;
             align-items: center;
-            margin-top: 12px;
-            padding: 12px 16px;
+            margin-top: 10px;
+            padding: 10px 14px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -769,6 +822,7 @@
             gap: 6px;
             font-size: 11px;
             color: var(--muted);
+            font-weight: 500;
         }
 
         .legend-dot {
@@ -777,6 +831,7 @@
             border-radius: 50%;
         }
 
+        /* Map history panel */
         .map-history-panel {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -785,16 +840,15 @@
         }
 
         .map-history-header {
-            padding: 16px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--border);
-            font-family: var(--font-sans);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--bright);
         }
 
         .map-history-controls {
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-bottom: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -807,9 +861,9 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 7px 10px;
             color: var(--bright);
-            font-family: var(--font-mono);
+            font-family: var(--font);
             font-size: 12px;
             outline: none;
         }
@@ -820,12 +874,12 @@
         }
 
         .map-history-list {
-            max-height: 420px;
+            max-height: 380px;
             overflow-y: auto;
         }
 
         .history-item {
-            padding: 10px 16px;
+            padding: 9px 14px;
             border-bottom: 1px solid rgba(30, 45, 61, 0.5);
             cursor: pointer;
             transition: background 0.15s;
@@ -842,12 +896,14 @@
         .history-item .h-time {
             font-size: 10px;
             color: var(--muted);
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            font-weight: 500;
         }
 
         .history-item .h-coords {
             font-size: 11px;
             color: var(--accent);
+            font-weight: 500;
         }
 
         .history-item .h-speed {
@@ -856,18 +912,19 @@
             margin-top: 2px;
         }
 
+        /* Compact device list for map */
         .map-device-list {
-            margin-top: 16px;
+            margin-top: 14px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 8px;
         }
 
         .map-device-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -885,32 +942,26 @@
 
         .map-device-info .dname {
             color: var(--bright);
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .map-device-info .serial {
             color: var(--accent);
-            font-size: 11px;
-        }
-
-        .map-device-info .model {
-            color: var(--muted);
-            font-size: 11px;
-            margin-top: 2px;
+            font-size: 10px;
+            font-weight: 500;
         }
 
         .map-device-info .coords {
             color: var(--accent2);
             font-size: 10px;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         /* Leaflet dark */
         .leaflet-container {
             background: #0d1117 !important;
-            font-family: var(--font-mono) !important;
+            font-family: var(--font) !important;
         }
 
         .leaflet-popup-content-wrapper {
@@ -926,7 +977,7 @@
         }
 
         .leaflet-popup-content {
-            font-family: var(--font-mono) !important;
+            font-family: var(--font) !important;
             font-size: 12px !important;
             color: var(--text) !important;
             margin: 12px 16px !important;
@@ -945,6 +996,7 @@
             border-radius: 8px;
             padding: 14px 20px;
             font-size: 12px;
+            font-weight: 600;
             color: var(--bright);
             z-index: 9000;
             transform: translateY(100px);
@@ -993,13 +1045,13 @@
         }
 
         .coord {
-            font-family: var(--font-mono);
+            font-family: monospace;
             color: var(--accent);
             font-size: 11px;
         }
 
         .scrollbar::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
         }
 
         .scrollbar::-webkit-scrollbar-track {
@@ -1015,6 +1067,49 @@
             .map-layout {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Confirm dialog */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 12, 16, 0.85);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-overlay.open {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            width: 360px;
+            text-align: center;
+        }
+
+        .confirm-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--bright);
+            margin-bottom: 10px;
+        }
+
+        .confirm-box p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
     </style>
 </head>
@@ -1045,13 +1140,11 @@
                 <button class="btn btn-ghost" onclick="logout()" style="padding:6px 12px;font-size:11px;">Salir</button>
             </div>
         </header>
-
         <div class="tabs">
             <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
             <div class="tab" onclick="switchTab('map')">🗺 Mapa & Historial</div>
             <div class="tab" onclick="switchTab('policies')">⚙ Políticas</div>
         </div>
-
         <div class="main">
 
             <!-- DASHBOARD -->
@@ -1060,10 +1153,6 @@
                     <div class="stat-card cyan">
                         <div class="stat-label">Total Dispositivos</div>
                         <div class="stat-value" id="s-total">—</div>
-                    </div>
-                    <div class="stat-card green">
-                        <div class="stat-label">Online (10 min)</div>
-                        <div class="stat-value" id="s-online">—</div>
                     </div>
                     <div class="stat-card yellow">
                         <div class="stat-label">Activos</div>
@@ -1076,7 +1165,13 @@
                 </div>
                 <div class="section-header">
                     <div class="section-title">Dispositivos</div>
-                    <button class="btn btn-ghost" onclick="loadDashboard()">↺ Actualizar</button>
+                    <button class="btn btn-ghost" onclick="loadDashboard()" style="font-size:11px">↺ Actualizar</button>
+                </div>
+                <div class="filter-bar">
+                    <button class="filter-btn active" id="f-all" onclick="setFilter('all')">Todos</button>
+                    <button class="filter-btn" id="f-active" onclick="setFilter('active')">● Activos</button>
+                    <button class="filter-btn" id="f-inactive" onclick="setFilter('inactive')">● Inactivos</button>
+                    <button class="filter-btn" id="f-blocked" onclick="setFilter('blocked')">● Bloqueados</button>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -1102,7 +1197,8 @@
                     <div class="section-title">Mapa en Vivo</div>
                     <div style="display:flex;gap:8px;align-items:center">
                         <span style="color:var(--muted);font-size:11px" id="map-last-update">—</span>
-                        <button class="btn btn-ghost" onclick="refreshMap()">↺ Actualizar</button>
+                        <button class="btn btn-ghost" onclick="refreshMap()" style="font-size:11px">↺
+                            Actualizar</button>
                         <button class="btn btn-ghost" onclick="fitMapBounds()" style="font-size:11px">⊕ Ver
                             todos</button>
                     </div>
@@ -1114,7 +1210,7 @@
                         </div>
                         <div class="map-legend">
                             <span
-                                style="color:var(--muted);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Leyenda:</span>
+                                style="color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Leyenda:</span>
                             <div class="legend-item">
                                 <div class="legend-dot" style="background:#00ff88"></div>Activo
                             </div>
@@ -1128,7 +1224,7 @@
                         <div class="map-device-list" id="map-device-list"></div>
                     </div>
                     <div class="map-history-panel">
-                        <div class="map-history-header">Historial GPS</div>
+                        <div class="map-history-header">📍 Historial GPS</div>
                         <div class="map-history-controls">
                             <select id="h-device" onchange="loadHistoryForMap()">
                                 <option value="">Selecciona dispositivo...</option>
@@ -1136,8 +1232,8 @@
                             <input type="date" id="h-date" onchange="loadHistoryForMap()" />
                         </div>
                         <div class="map-history-list scrollbar" id="history-list">
-                            <div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">Selecciona un
-                                dispositivo para ver el historial</div>
+                            <div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Selecciona un
+                                dispositivo</div>
                         </div>
                     </div>
                 </div>
@@ -1150,20 +1246,19 @@
                     <button class="btn btn-success" onclick="togglePolicyForm()">+ Nueva Política</button>
                 </div>
                 <div class="policy-form" id="policy-form">
-                    <div
-                        style="font-family:var(--font-sans);font-size:14px;font-weight:700;color:var(--bright);margin-bottom:16px;">
-                        Nueva Política</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--bright);margin-bottom:14px;">Nueva Política
+                    </div>
                     <div class="form-grid">
                         <div class="field" style="margin:0"><label>Nombre</label><input type="text" id="p-name"
                                 placeholder="ej. Kiosco Tienda"
-                                style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:13px;outline:none;width:100%">
+                                style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font);font-size:13px;outline:none;width:100%">
                         </div>
                         <div class="field" style="margin:0"><label>Descripción</label><input type="text" id="p-desc"
                                 placeholder="Descripción opcional"
-                                style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font-mono);font-size:13px;outline:none;width:100%">
+                                style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--bright);font-family:var(--font);font-size:13px;outline:none;width:100%">
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                         <label class="toggle-row" style="cursor:pointer"><span class="toggle-label">Modo
                                 Kiosco</span><label class="toggle"><input type="checkbox" id="p-kiosk"><span
                                     class="toggle-slider"></span></label></label>
@@ -1182,12 +1277,11 @@
                         <div class="toggle-row"><span class="toggle-label">Frecuencia GPS (min)</span><input
                                 type="number" class="number-input" id="p-freq" value="5" min="1" max="60"></div>
                     </div>
-                    <div class="field" style="margin-bottom:16px"><label>Apps permitidas (una por
+                    <div class="field" style="margin-bottom:14px"><label>Apps permitidas (una por
                             línea)</label><textarea class="apps-input" id="p-apps"
                             placeholder="com.example.app&#10;com.another.app"></textarea></div>
                     <div class="form-actions">
-                        <button class="btn btn-primary" onclick="createPolicy()" style="width:auto">Guardar
-                            Política</button>
+                        <button class="btn btn-primary" onclick="createPolicy()" style="width:auto">Guardar</button>
                         <button class="btn btn-ghost" onclick="togglePolicyForm()">Cancelar</button>
                     </div>
                 </div>
@@ -1207,7 +1301,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -1232,7 +1325,7 @@
                     </div>
                 </div>
                 <div class="detail-section">
-                    <div class="detail-section-title">Información del dispositivo</div>
+                    <div class="detail-section-title">Información</div>
                     <div class="detail-row"><span class="detail-key">Serial</span><span class="detail-val"
                             id="d-serial-val">—</span></div>
                     <div class="detail-row"><span class="detail-key">Fabricante</span><span class="detail-val"
@@ -1254,7 +1347,7 @@
                             id="d-lng">—</span></div>
                     <div class="detail-row"><span class="detail-key">Timestamp</span><span class="detail-val"
                             id="d-loc-time">—</span></div>
-                    <div id="d-maps-link" style="margin-top:10px;display:none"><a id="d-maps-a" href="#" target="_blank"
+                    <div id="d-maps-link" style="margin-top:8px;display:none"><a id="d-maps-a" href="#" target="_blank"
                             class="btn btn-ghost" style="font-size:11px;text-decoration:none;display:inline-flex">🗺 Ver
                             en Google Maps</a></div>
                 </div>
@@ -1275,14 +1368,15 @@
                                 class="toggle-slider"></span></label></div>
                     <div class="toggle-row"><span class="toggle-label">Frecuencia GPS (min)</span><input type="number"
                             class="number-input" id="c-freq" value="5" min="1" max="60"></div>
-                    <div style="margin-top:12px">
-                        <div class="detail-key" style="margin-bottom:6px">Apps permitidas (package names)</div><textarea
-                            class="apps-input" id="c-apps" placeholder="com.example.app&#10;com.another.app"></textarea>
+                    <div style="margin-top:10px">
+                        <div class="detail-key" style="margin-bottom:6px;font-size:11px;font-weight:500">Apps permitidas
+                        </div><textarea class="apps-input" id="c-apps"
+                            placeholder="com.example.app&#10;com.another.app"></textarea>
                     </div>
-                    <div style="margin-top:12px">
-                        <div class="detail-key" style="margin-bottom:6px">O aplicar plantilla:</div><select
-                            id="c-policy-select"
-                            style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--bright);font-family:var(--font-mono);font-size:12px;outline:none;width:100%">
+                    <div style="margin-top:10px">
+                        <div class="detail-key" style="margin-bottom:6px;font-size:11px;font-weight:500">O aplicar
+                            plantilla:</div><select id="c-policy-select"
+                            style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--bright);font-family:var(--font);font-size:12px;outline:none;width:100%">
                             <option value="">Seleccionar plantilla...</option>
                         </select>
                     </div>
@@ -1293,7 +1387,20 @@
                     Política</button>
                 <button class="btn btn-success" onclick="setStatus('active')" style="font-size:11px">Activar</button>
                 <button class="btn btn-ghost" onclick="setStatus('inactive')" style="font-size:11px">Desactivar</button>
-                <button class="btn btn-danger" onclick="setStatus('blocked')" style="font-size:11px">Bloquear</button>
+                <button class="btn btn-danger" onclick="confirmDelete()" style="font-size:11px">🗑 Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM DELETE -->
+    <div class="confirm-overlay" id="confirm-overlay">
+        <div class="confirm-box">
+            <h3>¿Eliminar dispositivo?</h3>
+            <p id="confirm-text">Esta acción no se puede deshacer.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-danger" onclick="deleteDevice()">Sí, eliminar</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('confirm-overlay').classList.remove('open')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -1301,8 +1408,19 @@
     <div id="toast"></div>
 
     <script>
-        let BASE = 'http://localhost:5000', TOKEN = '', currentSerial = null, allDevices = [], allPolicies = [];
+        let BASE = 'http://localhost:5000', TOKEN = '', currentSerial = null, allDevices = [], allPolicies = [], currentFilter = 'all';
         let liveMap = null, mapMarkers = {}, historyPolyline = null, historyMarkers = [], mapAutoRefreshInterval = null;
+
+        // Colombia UTC-5
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleString('es-CO', {
+                timeZone: 'America/Bogota',
+                dateStyle: 'short',
+                timeStyle: 'short'
+            });
+        }
 
         async function login() {
             TOKEN = document.getElementById('token-input').value.trim();
@@ -1345,21 +1463,34 @@
             if (name === 'map') initAndLoadMap();
         }
 
+        // Filter
+        function setFilter(f) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('f-' + f).classList.add('active');
+            renderDevices();
+        }
+
         async function loadDashboard() {
             const data = await api('/admin/v1/dashboard');
             const s = data.summary || {};
             document.getElementById('s-total').textContent = s.total_devices ?? '—';
-            document.getElementById('s-online').textContent = s.online_last_10min ?? '—';
             document.getElementById('s-active').textContent = s.active ?? '—';
             document.getElementById('s-blocked').textContent = s.blocked ?? '—';
             const devData = await api('/admin/v1/devices');
             allDevices = devData.devices || [];
+            renderDevices();
+        }
+
+        function renderDevices() {
             const tbody = document.getElementById('dash-devices');
-            if (!allDevices.length) { tbody.innerHTML = `<tr class="loading-row"><td colspan="7">No hay dispositivos registrados</td></tr>`; return; }
-            tbody.innerHTML = allDevices.map(d => `
+            let filtered = allDevices;
+            if (currentFilter !== 'all') filtered = allDevices.filter(d => d.status === currentFilter);
+            if (!filtered.length) { tbody.innerHTML = `<tr class="loading-row"><td colspan="7">${currentFilter === 'all' ? 'No hay dispositivos' : 'Sin dispositivos con este filtro'}</td></tr>`; return; }
+            tbody.innerHTML = filtered.map(d => `
         <tr onclick="openDetail('${d.serial_number}')">
-            <td style="color:var(--bright);font-weight:600">${d.device_name || '<span style="color:var(--muted);font-style:italic">Sin nombre</span>'}</td>
-            <td style="color:var(--accent);font-size:11px">${d.serial_number}</td>
+            <td style="color:var(--bright);font-weight:600">${d.device_name || '<span style="color:var(--muted);font-style:italic;font-weight:400">Sin nombre</span>'}</td>
+            <td style="color:var(--accent);font-size:11px;font-family:monospace">${d.serial_number}</td>
             <td>${d.manufacturer || ''} ${d.model || ''}</td>
             <td>${d.android_version || '—'}</td>
             <td>${badgeHTML(d.status)}</td>
@@ -1376,7 +1507,12 @@
             refreshMap();
             populateHistoryDeviceSelect();
             if (mapAutoRefreshInterval) clearInterval(mapAutoRefreshInterval);
-            mapAutoRefreshInterval = setInterval(() => { if (document.getElementById('tab-map').classList.contains('active')) refreshMap(); }, 30000);
+            mapAutoRefreshInterval = setInterval(() => {
+                if (document.getElementById('tab-map').classList.contains('active')) {
+                    refreshMap();
+                    populateHistoryDeviceSelect();
+                }
+            }, 5 * 60 * 1000);
         }
 
         async function refreshMap() {
@@ -1387,7 +1523,6 @@
             mapMarkers = {};
             const deviceListEl = document.getElementById('map-device-list');
             deviceListEl.innerHTML = '';
-            const withLocation = [];
             for (const d of devices) {
                 const detailData = await api('/admin/v1/devices/' + d.serial_number);
                 const loc = detailData.last_location;
@@ -1397,30 +1532,28 @@
             <div class="map-device-info">
                 ${d.device_name ? `<div class="dname">${d.device_name}</div>` : ''}
                 <div class="serial">${d.serial_number}</div>
-                <div class="model">${d.manufacturer || ''} ${d.model || ''}</div>
-                ${loc ? `<div class="coords">📍 ${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}</div>` : '<div class="coords" style="color:var(--muted)">Sin ubicación</div>'}
+                ${loc ? `<div class="coords">📍 ${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}</div>` : '<div class="coords" style="color:var(--muted)">Sin ubicación</div>'}
             </div>
             <div>${badgeHTML(d.status)}</div>`;
                 if (loc) { card.onclick = () => { liveMap.flyTo([loc.latitude, loc.longitude], 15, { animate: true, duration: 1 }); mapMarkers[d.serial_number]?.openPopup(); }; }
                 deviceListEl.appendChild(card);
                 if (!loc) continue;
-                withLocation.push({ device: d, loc });
                 const colors = { active: '#00ff88', inactive: '#ffaa00', blocked: '#ff4455' };
                 const color = colors[d.status] || '#4a5568';
-                const icon = L.divIcon({ className: '', html: `<div style="width:32px;height:32px;background:${color};border:3px solid #080c10;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 0 12px ${color}88;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:#080c10;border-radius:50%;transform:rotate(45deg)"></div></div>`, iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -36] });
+                const icon = L.divIcon({ className: '', html: `<div style="width:30px;height:30px;background:${color};border:3px solid #080c10;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 0 10px ${color}88"><div style="width:8px;height:8px;background:#080c10;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg)"></div></div>`, iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -34] });
                 const marker = L.marker([loc.latitude, loc.longitude], { icon }).addTo(liveMap).bindPopup(`
-            <div style="min-width:200px">
-                ${d.device_name ? `<div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#e6edf3;margin-bottom:2px">${d.device_name}</div>` : ''}
-                <div style="color:#4a5568;font-size:10px;margin-bottom:8px">${d.serial_number}</div>
-                <div style="color:#c9d1d9;margin-bottom:8px">${d.manufacturer || ''} ${d.model || ''}</div>
-                <div style="color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;margin-bottom:4px">${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}</div>
+            <div style="min-width:190px">
+                ${d.device_name ? `<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:2px">${d.device_name}</div>` : ''}
+                <div style="color:#4a5568;font-size:10px;margin-bottom:6px;font-family:monospace">${d.serial_number}</div>
+                <div style="color:#c9d1d9;margin-bottom:6px;font-size:12px">${d.manufacturer || ''} ${d.model || ''}</div>
+                <div style="color:#00d4ff;font-size:11px;margin-bottom:4px">${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}</div>
                 <div style="color:#4a5568;font-size:10px;margin-bottom:8px">${fmtDate(loc.timestamp)}</div>
-                <a href="https://www.google.com/maps?q=${loc.latitude},${loc.longitude}" target="_blank" style="color:#00d4ff;font-size:11px;text-decoration:none">🗺 Abrir en Google Maps →</a>
+                <a href="https://www.google.com/maps?q=${loc.latitude},${loc.longitude}" target="_blank" style="color:#00d4ff;font-size:11px;text-decoration:none">🗺 Google Maps →</a>
             </div>`);
                 mapMarkers[d.serial_number] = marker;
             }
-            document.getElementById('map-last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES');
-            if (withLocation.length > 0) fitMapBounds();
+            document.getElementById('map-last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
+            if (Object.keys(mapMarkers).length > 0) fitMapBounds();
         }
 
         function fitMapBounds() {
@@ -1451,18 +1584,18 @@
             if (historyPolyline) { liveMap?.removeLayer(historyPolyline); historyPolyline = null; }
             historyMarkers.forEach(m => liveMap?.removeLayer(m));
             historyMarkers = [];
-            if (!serial) { listEl.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">Selecciona un dispositivo</div>`; return; }
-            listEl.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted)"><span class="spinner"></span>Cargando...</div>`;
+            if (!serial) { listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Selecciona un dispositivo</div>`; return; }
+            listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted)"><span class="spinner"></span>Cargando...</div>`;
             let path = `/admin/v1/devices/${serial}/history?limit=200`;
             if (date) { path += `&start_date=${encodeURIComponent(date + 'T00:00:00')}&end_date=${encodeURIComponent(date + 'T23:59:59')}`; }
             const data = await api(path);
             const locs = (data.history || []).slice().reverse();
-            if (!locs.length) { listEl.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">Sin registros</div>`; return; }
+            if (!locs.length) { listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Sin registros</div>`; return; }
             const latLngs = locs.map(l => [l.latitude, l.longitude]);
             historyPolyline = L.polyline(latLngs, { color: '#00d4ff', weight: 2, opacity: 0.7 }).addTo(liveMap);
             locs.forEach((l, i) => {
                 const dot = L.circleMarker([l.latitude, l.longitude], { radius: 4, color: '#00d4ff', fillColor: '#00d4ff', fillOpacity: i === locs.length - 1 ? 1 : 0.4, weight: 1 })
-                    .bindPopup(`<div style="font-size:11px;color:#c9d1d9">${fmtDate(l.timestamp)}<br><span style="color:#00d4ff">${l.latitude.toFixed(6)}, ${l.longitude.toFixed(6)}</span></div>`)
+                    .bindPopup(`<div style="font-size:11px">${fmtDate(l.timestamp)}<br><span style="color:#00d4ff">${l.latitude.toFixed(6)}, ${l.longitude.toFixed(6)}</span></div>`)
                     .addTo(liveMap);
                 historyMarkers.push(dot);
             });
@@ -1499,7 +1632,7 @@
             if (!allPolicies.length) { tbody.innerHTML = `<tr class="loading-row"><td colspan="6">No hay políticas creadas</td></tr>`; return; }
             tbody.innerHTML = allPolicies.map(p => `
         <tr>
-            <td style="color:var(--bright);font-weight:500">${p.name}</td>
+            <td style="color:var(--bright);font-weight:600">${p.name}</td>
             <td style="color:var(--muted)">${p.description || '—'}</td>
             <td>${p.config.kiosk_mode_enabled ? '<span style="color:var(--accent2)">✓ Sí</span>' : '<span style="color:var(--muted)">No</span>'}</td>
             <td>${p.config.location_frequency_minutes ?? 5}</td>
@@ -1584,7 +1717,7 @@
             else { const appsRaw = document.getElementById('c-apps').value.trim(); body = { kiosk_mode_enabled: document.getElementById('c-kiosk').checked, wifi_disabled: document.getElementById('c-wifi').checked, data_disabled: document.getElementById('c-data').checked, disallow_factory_reset: document.getElementById('c-reset').checked, disallow_safe_boot: document.getElementById('c-safe').checked, location_frequency_minutes: parseInt(document.getElementById('c-freq').value) || 5, allowed_apps: appsRaw ? appsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [] }; }
             const r = await api('/admin/v1/devices/' + currentSerial + '/policy', { method: 'POST', body: JSON.stringify(body) });
             if (r.error) { toast(r.error, 'error'); return; }
-            toast('Política guardada. El dispositivo la recibirá en su próxima sincronización.', 'success');
+            toast('Política guardada ✓', 'success');
         }
 
         async function setStatus(status) {
@@ -1596,11 +1729,28 @@
             loadDashboard();
         }
 
+        function confirmDelete() {
+            if (!currentSerial) return;
+            document.getElementById('confirm-text').textContent = `¿Eliminar el dispositivo "${currentSerial}"? Esta acción no se puede deshacer.`;
+            document.getElementById('confirm-overlay').classList.add('open');
+        }
+
+        async function deleteDevice() {
+            if (!currentSerial) return;
+            document.getElementById('confirm-overlay').classList.remove('open');
+            const r = await api('/admin/v1/devices/' + currentSerial, { method: 'DELETE' });
+            if (r.error) { toast(r.error, 'error'); return; }
+            toast('Dispositivo eliminado', 'success');
+            closeDetailPanel();
+            loadDashboard();
+        }
+
         function badgeHTML(status) { const labels = { active: 'Activo', inactive: 'Inactivo', blocked: 'Bloqueado' }; return `<span class="badge badge-${status}"><span class="badge-dot"></span>${labels[status] || status}</span>`; }
-        function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }); }
         function toast(msg, type = 'success') { const el = document.getElementById('toast'); el.textContent = msg; el.className = 'show ' + type; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 3500); }
 
-        setInterval(() => { if (document.getElementById('tab-dashboard').classList.contains('active') && document.getElementById('app').classList.contains('visible')) loadDashboard(); }, 30000);
+        setInterval(() => {
+            if (document.getElementById('tab-dashboard').classList.contains('active') && document.getElementById('app').classList.contains('visible')) loadDashboard();
+        }, 30000);
     </script>
 </body>
 
